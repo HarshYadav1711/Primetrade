@@ -62,19 +62,24 @@ Examples:
     return parser.parse_args()
 
 
-def _confirm(params: dict) -> bool:
+def _confirm(params: dict[str, str | float | None]) -> bool:
     """Return True if user confirms, False otherwise."""
+
+    def _line(label: str, value: object) -> None:
+        print(f"  {label:<10}{value}")
+
     print("\nOrder summary:")
-    print(f"  symbol:   {params['symbol']}")
-    print(f"  side:     {params['side']}")
-    print(f"  type:     {params['type']}")
-    print(f"  quantity: {params['quantity']}")
+    _line("symbol:", params["symbol"])
+    _line("side:", params["side"])
+    _line("type:", params["type"])
+    _line("quantity:", params["quantity"])
     if params.get("price") is not None:
-        print(f"  price:    {params['price']}")
-    print("\nPlace this order on Binance Futures Testnet? [y/N] ", end="")
+        _line("price:", params["price"])
+    print("\nPlace this order on Binance Futures Testnet? [y/N] ", end="", flush=True)
     try:
         answer = input().strip().lower()
     except (EOFError, KeyboardInterrupt):
+        print()
         return False
     return answer in ("y", "yes")
 
@@ -101,7 +106,10 @@ def main() -> int:
     api_key = os.getenv("BINANCE_API_KEY")
     api_secret = os.getenv("BINANCE_API_SECRET")
     if not api_key or not api_secret:
-        print("Error: BINANCE_API_KEY and BINANCE_API_SECRET must be set (e.g. in .env).", file=sys.stderr)
+        print(
+            "Error: BINANCE_API_KEY and BINANCE_API_SECRET must be set (e.g. in .env).",
+            file=sys.stderr,
+        )
         return 1
 
     try:
@@ -110,8 +118,11 @@ def main() -> int:
     except OrderError as e:
         print(f"Order failed: {e}", file=sys.stderr)
         return 1
-    except Exception as e:
+    except RuntimeError as e:
         print(f"Error: {e}", file=sys.stderr)
+        return 1
+    except Exception as e:
+        print(f"Unexpected error: {e}", file=sys.stderr)
         return 1
 
     print("\nOrder placed successfully:")

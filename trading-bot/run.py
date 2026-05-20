@@ -1,4 +1,4 @@
-"""Entry point for the CLI."""
+"""CLI entry point for the trading bot."""
 
 from bot.cli import main
 

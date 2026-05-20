@@ -1,1 +1,1 @@
-# trading-bot
+"""Binance Futures Testnet trading bot package."""

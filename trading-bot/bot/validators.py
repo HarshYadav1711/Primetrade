@@ -79,8 +79,8 @@ def validate_order_params(
     order_type: str,
     quantity: str,
     price: str | None = None,
-) -> dict:
-    """Validate all order parameters and return normalized dict."""
+) -> dict[str, str | float | None]:
+    """Validate all order parameters and return a normalized parameter dict."""
     order_type_n = validate_order_type(order_type)
     return {
         "symbol": validate_symbol(symbol),

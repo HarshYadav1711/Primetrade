@@ -2,7 +2,7 @@
 
 from binance.client import Client
 
-# USDT-M Futures Testnet REST base (python-binance BaseClient.FUTURES_TESTNET_URL).
+# USDT-M Futures Testnet REST base (python-binance Client.FUTURES_TESTNET_URL).
 # With testnet=True, futures_create_order POSTs to {base}/v1/order.
 FUTURES_TESTNET_FAPI_BASE: str = Client.FUTURES_TESTNET_URL
 FUTURES_TESTNET_ORDER_ENDPOINT: str = (
@@ -11,12 +11,7 @@ FUTURES_TESTNET_ORDER_ENDPOINT: str = (
 
 
 def _futures_order_endpoint(client: Client) -> str:
-    """
-    v1 futures order REST path from public SDK constants (same routing as the SDK).
-
-    When ``client.testnet`` is true, ``FUTURES_TESTNET_URL`` is used; otherwise
-    ``FUTURES_URL`` (mainnet). See python-binance ``BaseClient._create_futures_api_uri``.
-    """
+    """Build the v1 futures order path from public SDK URL constants."""
     base = client.FUTURES_TESTNET_URL if client.testnet else client.FUTURES_URL
     return f"{base}/{client.FUTURES_API_VERSION}/order"
 
@@ -62,7 +57,7 @@ def place_futures_order(
     Place a single futures order. MARKET or LIMIT.
     For LIMIT, price and timeInForce GTC are required.
     """
-    params = {
+    params: dict[str, str | float] = {
         "symbol": symbol,
         "side": side,
         "type": order_type,

@@ -1,7 +1,6 @@
 """Structured logging for market and limit orders."""
 
 import logging
-import os
 from pathlib import Path
 
 LOG_DIR = Path(__file__).resolve().parent.parent / "logs"
@@ -35,22 +34,22 @@ def get_order_logger(order_type: str) -> logging.Logger:
 
 def log_request(logger: logging.Logger, params: dict) -> None:
     """Log outgoing order request (no secrets)."""
-    logger.info("Request: %s", params)
+    logger.info("Order request | %s", params)
 
 
 def log_response(logger: logging.Logger, response: dict) -> None:
     """Log API response summary."""
     logger.info(
-        "Response: orderId=%s status=%s executedQty=%s",
+        "Order response | orderId=%s status=%s executedQty=%s",
         response.get("orderId"),
         response.get("status"),
         response.get("executedQty"),
     )
 
 
-def log_error(logger: logging.Logger, message: str, exc: Exception | None = None) -> None:
-    """Log an error; optionally include exception."""
-    if exc:
-        logger.exception("%s: %s", message, exc)
+def log_error(logger: logging.Logger, context: str, exc: Exception | None = None) -> None:
+    """Log an error; include stack trace when *exc* is provided."""
+    if exc is not None:
+        logger.exception("Order failed | %s", context)
     else:
-        logger.error("%s", message)
+        logger.error("Order failed | %s", context)
