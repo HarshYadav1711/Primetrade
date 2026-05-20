@@ -5,6 +5,32 @@ from binance.client import Client
 # USDT-M Futures Testnet REST base (python-binance BaseClient.FUTURES_TESTNET_URL).
 # With testnet=True, futures_create_order POSTs to {base}/v1/order.
 FUTURES_TESTNET_FAPI_BASE: str = Client.FUTURES_TESTNET_URL
+FUTURES_TESTNET_ORDER_ENDPOINT: str = (
+    f"{FUTURES_TESTNET_FAPI_BASE}/{Client.FUTURES_API_VERSION}/order"
+)
+
+
+def _futures_order_endpoint(client: Client) -> str:
+    """
+    v1 futures order REST path from public SDK constants (same routing as the SDK).
+
+    When ``client.testnet`` is true, ``FUTURES_TESTNET_URL`` is used; otherwise
+    ``FUTURES_URL`` (mainnet). See python-binance ``BaseClient._create_futures_api_uri``.
+    """
+    base = client.FUTURES_TESTNET_URL if client.testnet else client.FUTURES_URL
+    return f"{base}/{client.FUTURES_API_VERSION}/order"
+
+
+def _assert_futures_testnet_client(client: Client) -> None:
+    """Ensure the client is testnet-only before any futures order call."""
+    if not client.testnet:
+        raise RuntimeError("Binance client must be initialized with testnet=True.")
+    endpoint = _futures_order_endpoint(client)
+    if endpoint != FUTURES_TESTNET_ORDER_ENDPOINT:
+        raise RuntimeError(
+            f"Futures order endpoint is not testnet: {endpoint!r} "
+            f"(expected {FUTURES_TESTNET_ORDER_ENDPOINT!r})"
+        )
 
 
 def create_futures_client(api_key: str, api_secret: str) -> Client:
@@ -20,14 +46,7 @@ def create_futures_client(api_key: str, api_secret: str) -> Client:
         api_secret=api_secret,
         testnet=True,
     )
-    if not client.testnet:
-        raise RuntimeError("Binance client must be initialized with testnet=True.")
-    order_url = client._create_futures_api_uri("order")
-    if not order_url.startswith(FUTURES_TESTNET_FAPI_BASE):
-        raise RuntimeError(
-            f"Futures order URL is not testnet: {order_url!r} "
-            f"(expected prefix {FUTURES_TESTNET_FAPI_BASE!r})"
-        )
+    _assert_futures_testnet_client(client)
     return client
 
 
