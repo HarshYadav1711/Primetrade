@@ -70,6 +70,57 @@ trading-bot/
 
 ---
 
+## Architecture
+
+End-to-end flow: the CLI parses arguments, validators normalize and reject bad input before any network call, the order service logs and places the order through a testnet-only client, and file loggers record request/response or failure details.
+
+```mermaid
+flowchart LR
+    CLI --> Validators
+    Validators --> OrderService["Order Service"]
+    OrderService --> BinanceClient["Binance Client"]
+    BinanceClient --> Testnet["Binance Futures Testnet"]
+    OrderService --> Logger
+```
+
+### Request flow
+
+1. `run.py` invokes `cli.main()`, which parses flags with argparse.
+2. `validate_order_params()` runs immediately; invalid input never reaches the exchange.
+3. After validation, the CLI prints a summary and prompts for confirmation (unless `--yes`).
+4. Credentials load from `.env`; `create_futures_client()` builds a testnet-only `Client`.
+5. `place_order()` logs the request, calls `place_futures_order()` → `futures_create_order` on the testnet host, logs the response, and prints a summary to stdout.
+
+### Module responsibilities
+
+| Module | Role |
+|--------|------|
+| `cli.py` | Argument parsing, confirmation prompt, env loading, exit codes, user-facing messages |
+| `validators.py` | Symbol, side, type, quantity, and price rules; returns a normalized parameter dict |
+| `orders.py` | Order orchestration: logging hooks, API call, response formatting, `OrderError` translation |
+| `client.py` | Testnet client factory, endpoint guard, `futures_create_order` payload assembly |
+| `logging_config.py` | Per-order-type file loggers (`market_order.log` / `limit_order.log`) |
+
+### Validation flow
+
+Validation runs in `validators.py` before credentials or API access. Each field has a dedicated check (symbol format, allowed side/type, positive numeric quantity, price required only for LIMIT). Failures raise `ValidationError`; the CLI catches these, prints `Validation error: …` to stderr, and exits with code `1`.
+
+### Logging flow
+
+`orders.place_order()` selects a logger via `get_order_logger(order_type)` — MARKET and LIMIT write to separate files under `logs/`. The service logs the outgoing parameter dict (`log_request`), then either the exchange response summary (`log_response`) or a failure with stack trace (`log_error`). Secrets are never written to logs.
+
+### Error handling
+
+Errors are handled at layer boundaries so the CLI stays thin:
+
+- **Input** — `ValidationError` → user message, no API call.
+- **Configuration** — missing API keys → stderr message, exit `1`.
+- **Client safety** — `create_futures_client()` asserts `testnet=True` and the expected order endpoint; mismatch raises `RuntimeError`.
+- **Exchange** — `BinanceAPIException` / `BinanceRequestException` are caught in `orders.py`, logged, wrapped in `OrderError` (with a clearer message when notional is below 100 USDT), and surfaced as `Order failed: …`.
+- **Unexpected** — any other exception prints a generic message to stderr; details belong in the log file when the order path was entered.
+
+---
+
 ## Setup Instructions
 
 ### 1. Clone the repository
