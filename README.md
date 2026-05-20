@@ -34,6 +34,15 @@ The design closely follows how backend trading tools are structured in productio
 
 No paid services, cloud platforms, or billing-based tools are used.
 
+### Futures Testnet REST endpoint
+
+Order placement goes only through `bot.client.create_futures_client`, which passes `testnet=True` to [python-binance](https://github.com/sammchardy/python-binance). The SDK then routes `futures_create_order` to the USDT-M Futures Testnet host, not mainnet:
+
+- **Base:** `https://testnet.binancefuture.com/fapi` (same as `Client.FUTURES_TESTNET_URL` in the SDK)
+- **Order path:** `POST …/v1/order` → full URL `https://testnet.binancefuture.com/fapi/v1/order`
+
+At startup, `create_futures_client` checks that the resolved order URL still uses that testnet base. Spot and mainnet futures APIs are not used by this bot.
+
 ---
 
 ## Project Structure

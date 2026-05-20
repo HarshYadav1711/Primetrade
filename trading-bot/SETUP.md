@@ -101,7 +101,7 @@ With the virtual environment activated:
 pip install -r requirements.txt
 ```
 
-You should see `python-binance` (imports as `binance`) and `python-dotenv` installed. The bot uses `Client(testnet=True)` from python-binance to reach Binance Futures Testnet only.
+You should see `python-binance` (imports as `binance`) and `python-dotenv` installed. The bot uses `Client(testnet=True)` so `futures_create_order` posts to `https://testnet.binancefuture.com/fapi/v1/order` (see `bot/client.py` and the README “Futures Testnet REST endpoint” section).
 
 ### Step 2.4: Put your API keys in `.env`
 
