@@ -1,0 +1,16 @@
+# Secrets (keep .env.example)
+.env
+.env.local
+!.env.example
+
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# Runtime logs (directory kept via .gitkeep)
+*.log

@@ -1,4 +1,0 @@
-2026-02-02 00:08:46 | INFO     | Request: {'symbol': 'ETHUSDT', 'side': 'SELL', 'type': 'LIMIT', 'quantity': 0.01, 'price': 2500.0}
-2026-02-02 00:08:46 | INFO     | Response: orderId=8239435779 status=NEW executedQty=0.000
-2026-02-02 00:09:17 | INFO     | Request: {'symbol': 'ETHUSDT', 'side': 'BUY', 'type': 'LIMIT', 'quantity': 0.05, 'price': 2400.0}
-2026-02-02 00:09:18 | INFO     | Response: orderId=8239438179 status=NEW executedQty=0.000
