@@ -52,19 +52,26 @@ def place_order(client: Client, params: dict[str, str | float | None]) -> dict:
     return response
 
 
+def _display_value(value: object) -> str:
+    if value is None or not str(value).strip():
+        return "—"
+    if isinstance(value, float):
+        return format(value, "g")
+    return str(value)
+
+
 def format_order_summary(response: dict) -> str:
     """Human-readable order result (orderId, status, executedQty, avgPrice)."""
-
-    def _field(label: str, value: object) -> str:
-        display = value if value is not None and str(value).strip() else "—"
-        return f"  {label:<13}{display}"
-
-    lines = [
-        _field("orderId:", response.get("orderId")),
-        _field("status:", response.get("status")),
-        _field("executedQty:", response.get("executedQty", response.get("origQty"))),
+    rows: list[tuple[str, object]] = [
+        ("Order ID", response.get("orderId")),
+        ("Status", response.get("status")),
+        ("Executed qty", response.get("executedQty", response.get("origQty"))),
     ]
     avg = response.get("avgPrice")
     if avg is not None and str(avg).strip():
-        lines.append(_field("avgPrice:", avg))
-    return "\n".join(lines)
+        rows.append(("Avg price", avg))
+
+    width = max(len(label) for label, _ in rows)
+    return "\n".join(
+        f"  {label:<{width}}  {_display_value(value)}" for label, value in rows
+    )

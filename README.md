@@ -103,7 +103,7 @@ flowchart LR
 
 ### Validation flow
 
-Validation runs in `validators.py` before credentials or API access. Each field has a dedicated check (symbol format, allowed side/type, positive numeric quantity, price required only for LIMIT). Failures raise `ValidationError`; the CLI catches these, prints `Validation error: …` to stderr, and exits with code `1`.
+Validation runs in `validators.py` before credentials or API access. Each field has a dedicated check (symbol format, allowed side/type, positive numeric quantity, price required only for LIMIT). Failures raise `ValidationError`; the CLI catches these, prints a `Validation failed` block to stderr, and exits with code `1`.
 
 ### Logging flow
 
@@ -208,17 +208,9 @@ python run.py --symbol ETHUSDT --side SELL --type LIMIT --quantity 0.04 --price 
 
 ### Expected output
 
-After you confirm with `y`, a successful order prints:
+After you confirm with `y`, a successful order prints a green `✓ Order placed` header and a short result block (Order ID, Status, Executed qty, Avg price when available).
 
-```
-Order placed successfully:
-  orderId:     ...
-  status:      FILLED
-  executedQty: ...
-  avgPrice:    ...
-```
-
-Limit orders may show `status: NEW` until the price is reached. On failure, the CLI prints `Validation error: ...` or `Order failed: ...` to stderr. Request and response details are written to `logs/market_order.log` or `logs/limit_order.log`.
+Limit orders may show `Status: NEW` until the price is reached. On failure, the CLI prints a red `✗` header (`Validation failed`, `Order failed`, etc.) with the detail to stderr. Colors apply when the terminal supports them. Request and response details are written to `logs/market_order.log` or `logs/limit_order.log`.
 
 ---
 

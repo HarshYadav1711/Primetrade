@@ -201,9 +201,9 @@ Open these files to see request/response and error details (timestamps and log l
 | `BINANCE_API_KEY and BINANCE_API_SECRET must be set` | Edit `.env` in the project root; ensure both variables are set and the file is saved. |
 | `Order failed: ...` (API error) | Check the message (e.g. insufficient balance, invalid symbol). On testnet, get free testnet USDT from the testnet site if needed. Check `logs/market_order.log` or `logs/limit_order.log` for full error. |
 | `Order's notional must be no smaller than 100` | Binance Futures requires notional (quantity × price) ≥ 100 USDT. Use a larger quantity, e.g. `0.002` for BTCUSDT or `0.04` for ETHUSDT at ~2500. |
-| `Validation error: Price is required for LIMIT orders` | For `--type LIMIT` you must pass `--price` (e.g. `--price 2500`). |
-| `Validation error: Quantity must be greater than zero` | Use a positive quantity (e.g. `0.001`). |
-| Nothing happens when I type at the prompt | Make sure you’re typing in the same terminal where the script is running; the prompt is “Place this order on Binance Futures Testnet? [y/N]”. |
+| `✗ Validation failed` with `price: required for LIMIT orders` | For `--type LIMIT` you must pass `--price` (e.g. `--price 2500`). |
+| `✗ Validation failed` with `quantity: must be greater than zero` | Use a positive quantity (e.g. `0.001`). |
+| Nothing happens when I type at the prompt | Make sure you’re typing in the same terminal where the script is running; the prompt is `Submit this order? [y/N]`. |
 | `failed to locate pyvenv.cfg` when running `python -m venv venv` | Usually means an existing `venv` folder is broken or incomplete. Close any terminal/IDE using that venv, delete the `venv` folder under `trading-bot/`, then run `python -m venv venv` again from `trading-bot/`. |
 
 ---
