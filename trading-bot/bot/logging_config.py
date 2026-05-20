@@ -1,4 +1,4 @@
-"""Structured logging for market, limit, and stop-market orders."""
+"""File logging for market, limit, and stop-market orders."""
 
 import logging
 from pathlib import Path
@@ -39,24 +39,80 @@ def get_order_logger(order_type: str) -> logging.Logger:
     return logger
 
 
+def _order_tags(params: dict) -> str:
+    """symbol/side/type tags shared across request, response, and error lines."""
+    parts: list[str] = []
+    for key in ("symbol", "side", "type"):
+        value = params.get(key)
+        if value is not None and str(value).strip():
+            parts.append(f"{key}={value}")
+    return " ".join(parts)
+
+
+def _merge_order_context(response: dict, params: dict | None) -> dict:
+    """Prefer exchange response fields; fall back to outgoing request params."""
+    merged = dict(params or {})
+    for key in ("symbol", "side", "type"):
+        value = response.get(key)
+        if value is not None and str(value).strip():
+            merged[key] = value
+    return merged
+
+
+def _execution_tags(response: dict) -> str:
+    """Execution identifiers when the exchange returns them."""
+    parts: list[str] = []
+    order_id = response.get("orderId")
+    if order_id is not None:
+        parts.append(f"orderId={order_id}")
+    client_order_id = response.get("clientOrderId")
+    if client_order_id:
+        parts.append(f"clientOrderId={client_order_id}")
+    return " ".join(parts)
+
+
 def log_request(logger: logging.Logger, params: dict) -> None:
     """Log outgoing order parameters (no API keys or secrets)."""
-    logger.info("order | request | %s", params)
-
-
-def log_response(logger: logging.Logger, response: dict) -> None:
-    """Log exchange response summary fields."""
+    tags = _order_tags(params)
     logger.info(
-        "order | response | orderId=%s status=%s executedQty=%s",
-        response.get("orderId"),
-        response.get("status"),
-        response.get("executedQty"),
+        "order | request | %s | status=submitting | %s",
+        tags or "—",
+        params,
     )
 
 
-def log_error(logger: logging.Logger, context: str, exc: Exception | None = None) -> None:
+def log_response(
+    logger: logging.Logger, response: dict, params: dict | None = None
+) -> None:
+    """Log exchange response summary fields."""
+    tags = _order_tags(_merge_order_context(response, params))
+    execution = _execution_tags(response)
+    status = response.get("status")
+    executed_qty = response.get("executedQty", response.get("origQty"))
+    logger.info(
+        "order | response | %s | %s | status=%s executedQty=%s",
+        tags or "—",
+        execution or "orderId=—",
+        status,
+        executed_qty,
+    )
+
+
+def log_error(
+    logger: logging.Logger,
+    context: str,
+    exc: Exception | None = None,
+    *,
+    params: dict | None = None,
+) -> None:
     """Log a failure; include stack trace when *exc* is provided."""
+    tags = _order_tags(params or {})
+    detail = f"status=failed | {context}"
+    if exc is not None and getattr(exc, "code", None):
+        detail = f"{detail} | apiCode={exc.code}"
+    message = f"order | failed | {tags} | {detail}" if tags else f"order | failed | {detail}"
     if exc is not None:
-        logger.exception("order | failed | %s", context)
+        logger.exception(message)
     else:
-        logger.error("order | failed | %s", context)
+        logger.error(message)
+

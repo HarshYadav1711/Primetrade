@@ -36,7 +36,7 @@ def place_order(client: Client, params: dict[str, str | float | None]) -> dict:
             stop_price=params.get("stop_price"),
         )
     except BinanceAPIException as e:
-        log_error(logger, "binance api", e)
+        log_error(logger, "binance api", e, params=params)
         msg = getattr(e, "message", None) or str(e)
         # Append a clearer hint when the exchange rejects sub-minimum notional.
         if "notional" in msg.lower() and "100" in msg:
@@ -47,10 +47,10 @@ def place_order(client: Client, params: dict[str, str | float | None]) -> dict:
             )
         raise OrderError(msg) from e
     except BinanceRequestException as e:
-        log_error(logger, "binance request", e)
+        log_error(logger, "binance request", e, params=params)
         raise OrderError(str(e)) from e
 
-    log_response(logger, response)
+    log_response(logger, response, params=params)
     return response
 
 
