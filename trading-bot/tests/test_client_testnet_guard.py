@@ -18,11 +18,11 @@ class TestFuturesTestnetGuard(unittest.TestCase):
         self.assertTrue(client.testnet)
 
     def test_order_endpoint_uses_public_testnet_constants(self):
-        client = Client("key", "secret", testnet=True)
+        client = Client("key", "secret", testnet=True, ping=False)
         self.assertEqual(_futures_order_endpoint(client), FUTURES_TESTNET_ORDER_ENDPOINT)
 
     def test_assert_rejects_non_testnet_client(self):
-        client = Client("key", "secret", testnet=False)
+        client = Client("key", "secret", testnet=False, ping=False)
         with self.assertRaises(RuntimeError) as ctx:
             _assert_futures_testnet_client(client)
         self.assertIn("testnet", str(ctx.exception).lower())

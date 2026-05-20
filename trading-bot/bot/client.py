@@ -79,6 +79,7 @@ def create_futures_client(api_key: str, api_secret: str) -> Client:
         api_key=api_key,
         api_secret=api_secret,
         testnet=True,
+        ping=False,
         requests_params={"timeout": REQUEST_TIMEOUT_SECONDS},
     )
     _assert_futures_testnet_client(client)
