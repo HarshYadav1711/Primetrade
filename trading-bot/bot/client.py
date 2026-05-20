@@ -52,10 +52,11 @@ def place_futures_order(
     order_type: str,
     quantity: float,
     price: float | None = None,
+    stop_price: float | None = None,
 ) -> dict:
     """
-    Place a single futures order. MARKET or LIMIT.
-    For LIMIT, price and timeInForce GTC are required.
+    Place a single futures order. MARKET, LIMIT, or STOP_MARKET.
+    LIMIT requires price and timeInForce GTC; STOP_MARKET requires stopPrice.
     """
     params: dict[str, str | float] = {
         "symbol": symbol,
@@ -68,4 +69,8 @@ def place_futures_order(
             raise ValueError("Price is required for LIMIT orders.")
         params["timeInForce"] = "GTC"
         params["price"] = price
+    elif order_type == "STOP_MARKET":
+        if stop_price is None:
+            raise ValueError("Stop price is required for STOP_MARKET orders.")
+        params["stopPrice"] = stop_price
     return client.futures_create_order(**params)

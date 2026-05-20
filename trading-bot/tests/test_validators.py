@@ -21,6 +21,7 @@ class TestValidateOrderParams(unittest.TestCase):
                 "type": "MARKET",
                 "quantity": 0.002,
                 "price": None,
+                "stop_price": None,
             },
         )
 
@@ -54,6 +55,23 @@ class TestValidateOrderParams(unittest.TestCase):
         with self.assertRaises(ValidationError) as ctx:
             validate_order_params("BTCUSDT", "BUY", "LIMIT", "0.01")
         self.assertIn("price", str(ctx.exception).lower())
+
+    def test_stop_market_requires_stop_price(self):
+        result = validate_order_params(
+            symbol="BTCUSDT",
+            side="SELL",
+            order_type="STOP_MARKET",
+            quantity="0.002",
+            stop_price="90000",
+        )
+        self.assertEqual(result["type"], "STOP_MARKET")
+        self.assertEqual(result["stop_price"], 90000.0)
+        self.assertIsNone(result["price"])
+
+    def test_stop_market_without_stop_price_raises(self):
+        with self.assertRaises(ValidationError) as ctx:
+            validate_order_params("BTCUSDT", "SELL", "STOP_MARKET", "0.002")
+        self.assertIn("stop", str(ctx.exception).lower())
 
 
 if __name__ == "__main__":

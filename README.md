@@ -13,7 +13,7 @@ The design closely follows how backend trading tools are structured in productio
 
 ## Key Capabilities
 
-- Place MARKET and LIMIT orders on Binance Futures Testnet  
+- Place MARKET, LIMIT, and STOP_MARKET orders on Binance Futures Testnet  
 - Support for both BUY and SELL sides  
 - Command-line based execution using argparse  
 - Input validation before sending any request to the exchange  
@@ -57,7 +57,8 @@ trading-bot/
 │   └── cli.py
 ├── logs/
 │   ├── market_order.log
-│   └── limit_order.log
+│   ├── limit_order.log
+│   └── stop_market_order.log
 ├── tests/
 │   ├── test_validators.py
 │   ├── test_client_order_payload.py
@@ -206,11 +207,19 @@ Limit orders require `--price`:
 python run.py --symbol ETHUSDT --side SELL --type LIMIT --quantity 0.04 --price 2500
 ```
 
+### Stop-Market Order
+
+STOP_MARKET orders require `--stop-price` (trigger price). When the market reaches the stop price, Binance executes the order as a market order:
+
+```
+python run.py --symbol BTCUSDT --side SELL --type STOP_MARKET --quantity 0.002 --stop-price 90000
+```
+
 ### Expected output
 
 After you confirm with `y`, a successful order prints a green `✓ Order placed` header and a short result block (Order ID, Status, Executed qty, Avg price when available).
 
-Limit orders may show `Status: NEW` until the price is reached. On failure, the CLI prints a red `✗` header (`Validation failed`, `Order failed`, etc.) with the detail to stderr. Colors apply when the terminal supports them. Request and response details are written to `logs/market_order.log` or `logs/limit_order.log`.
+Limit and STOP_MARKET orders may show `Status: NEW` until filled or triggered. On failure, the CLI prints a red `✗` header (`Validation failed`, `Order failed`, etc.) with the detail to stderr. Colors apply when the terminal supports them. Request and response details are written to `logs/market_order.log`, `logs/limit_order.log`, or `logs/stop_market_order.log` by order type.
 
 ---
 
@@ -254,6 +263,7 @@ CI runs the same checks on push and pull requests via `.github/workflows/smoke.y
 - No websocket streaming
 - Orders executed manually via CLI
 - Focus strictly on execution layer reliability
+- **STOP_MARKET:** `--stop-price` is the trigger only; execution is at market price once triggered. BUY stops fire when price rises to the stop; SELL stops fire when price falls to the stop (Binance default contract price). No `closePosition` or reduce-only flags — use explicit quantity like other order types. Minimum notional (100 USDT) may be evaluated against stop price × quantity at submission time.
 
 ---
 

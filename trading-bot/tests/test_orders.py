@@ -14,6 +14,7 @@ MARKET_PARAMS = {
     "type": "MARKET",
     "quantity": 0.002,
     "price": None,
+    "stop_price": None,
 }
 
 LIMIT_PARAMS = {
@@ -22,6 +23,16 @@ LIMIT_PARAMS = {
     "type": "LIMIT",
     "quantity": 0.04,
     "price": 2500.0,
+    "stop_price": None,
+}
+
+STOP_MARKET_PARAMS = {
+    "symbol": "BTCUSDT",
+    "side": "SELL",
+    "type": "STOP_MARKET",
+    "quantity": 0.002,
+    "price": None,
+    "stop_price": 90000.0,
 }
 
 
@@ -47,6 +58,7 @@ class TestPlaceOrderPayload(unittest.TestCase):
             order_type="MARKET",
             quantity=0.002,
             price=None,
+            stop_price=None,
         )
 
     def test_limit_order_forwards_correct_payload(self, mock_place, _mock_logger):
@@ -62,6 +74,23 @@ class TestPlaceOrderPayload(unittest.TestCase):
             order_type="LIMIT",
             quantity=0.04,
             price=2500.0,
+            stop_price=None,
+        )
+
+    def test_stop_market_order_forwards_correct_payload(self, mock_place, _mock_logger):
+        mock_place.return_value = {"orderId": 3, "status": "NEW"}
+        client = MagicMock()
+
+        place_order(client, STOP_MARKET_PARAMS)
+
+        mock_place.assert_called_once_with(
+            client=client,
+            symbol="BTCUSDT",
+            side="SELL",
+            order_type="STOP_MARKET",
+            quantity=0.002,
+            price=None,
+            stop_price=90000.0,
         )
 
 

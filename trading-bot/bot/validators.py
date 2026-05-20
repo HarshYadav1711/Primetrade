@@ -3,7 +3,7 @@
 import re
 
 VALID_SIDES = frozenset({"BUY", "SELL"})
-VALID_ORDER_TYPES = frozenset({"MARKET", "LIMIT"})
+VALID_ORDER_TYPES = frozenset({"MARKET", "LIMIT", "STOP_MARKET"})
 SYMBOL_PATTERN = re.compile(r"^[A-Z0-9]{5,20}$")
 
 
@@ -36,13 +36,13 @@ def validate_side(side: str) -> str:
 
 
 def validate_order_type(order_type: str) -> str:
-    """Order type must be MARKET or LIMIT."""
+    """Order type must be MARKET, LIMIT, or STOP_MARKET."""
     if not order_type or not order_type.strip():
-        raise ValidationError("order type: required — must be MARKET or LIMIT")
+        raise ValidationError("order type: required — must be MARKET, LIMIT, or STOP_MARKET")
     t = order_type.strip().upper()
     if t not in VALID_ORDER_TYPES:
         raise ValidationError(
-            f"order type: must be MARKET or LIMIT (got {order_type.strip()!r})"
+            f"order type: must be MARKET, LIMIT, or STOP_MARKET (got {order_type.strip()!r})"
         )
     return t
 
@@ -64,9 +64,30 @@ def validate_quantity(quantity: str) -> float:
     return q
 
 
+def validate_stop_price(stop_price: str | None, order_type: str) -> float | None:
+    """Stop price required for STOP_MARKET; must be positive. Ignored for other types."""
+    if order_type != "STOP_MARKET":
+        return None
+    if not stop_price or not str(stop_price).strip():
+        raise ValidationError(
+            "stop price: required for STOP_MARKET orders (pass --stop-price)"
+        )
+    try:
+        p = float(stop_price)
+    except (TypeError, ValueError):
+        raise ValidationError(
+            f"stop price: must be a positive number (invalid value {stop_price!r})"
+        )
+    if p <= 0:
+        raise ValidationError(
+            f"stop price: must be greater than zero (got {stop_price.strip()})"
+        )
+    return p
+
+
 def validate_price(price: str | None, order_type: str) -> float | None:
-    """Price required for LIMIT; must be positive. Ignored for MARKET."""
-    if order_type == "MARKET":
+    """Price required for LIMIT; must be positive. Ignored for MARKET and STOP_MARKET."""
+    if order_type != "LIMIT":
         return None
     if not price or not str(price).strip():
         raise ValidationError("price: required for LIMIT orders (pass --price)")
@@ -85,6 +106,7 @@ def validate_order_params(
     order_type: str,
     quantity: str,
     price: str | None = None,
+    stop_price: str | None = None,
 ) -> dict[str, str | float | None]:
     """Validate all order parameters and return a normalized parameter dict."""
     order_type_n = validate_order_type(order_type)
@@ -94,4 +116,5 @@ def validate_order_params(
         "type": order_type_n,
         "quantity": validate_quantity(quantity),
         "price": validate_price(price, order_type_n),
+        "stop_price": validate_stop_price(stop_price, order_type_n),
     }

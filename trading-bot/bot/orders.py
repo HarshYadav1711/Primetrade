@@ -33,6 +33,7 @@ def place_order(client: Client, params: dict[str, str | float | None]) -> dict:
             order_type=params["type"],
             quantity=params["quantity"],
             price=params.get("price"),
+            stop_price=params.get("stop_price"),
         )
     except BinanceAPIException as e:
         log_error(logger, "Binance API error", e)

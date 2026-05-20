@@ -50,6 +50,8 @@ def _order_field_rows(params: dict[str, str | float | None]) -> list[tuple[str, 
     ]
     if params.get("price") is not None:
         rows.append(("Price", params["price"]))
+    if params.get("stop_price") is not None:
+        rows.append(("Stop price", params["stop_price"]))
     return rows
 
 
@@ -99,12 +101,13 @@ def _print_cancelled() -> None:
 
 def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Place MARKET or LIMIT orders on Binance Futures Testnet (USDT-M).",
+        description="Place orders on Binance Futures Testnet (USDT-M): MARKET, LIMIT, STOP_MARKET.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
   python run.py --symbol BTCUSDT --side BUY --type MARKET --quantity 0.002
   python run.py --symbol ETHUSDT --side SELL --type LIMIT --quantity 0.04 --price 2500
+  python run.py --symbol BTCUSDT --side SELL --type STOP_MARKET --quantity 0.002 --stop-price 90000
         """,
     )
     parser.add_argument(
@@ -123,9 +126,9 @@ Examples:
         "--type",
         dest="order_type",
         required=True,
-        choices=["MARKET", "LIMIT"],
+        choices=["MARKET", "LIMIT", "STOP_MARKET"],
         metavar="TYPE",
-        help="Order type",
+        help="Order type (MARKET, LIMIT, or STOP_MARKET)",
     )
     parser.add_argument(
         "--quantity",
@@ -138,6 +141,12 @@ Examples:
         default=None,
         metavar="PRICE",
         help="Limit price (required for LIMIT orders)",
+    )
+    parser.add_argument(
+        "--stop-price",
+        default=None,
+        metavar="STOP",
+        help="Trigger price (required for STOP_MARKET orders)",
     )
     parser.add_argument(
         "--yes",
@@ -180,6 +189,7 @@ def main() -> int:
             order_type=args.order_type,
             quantity=args.quantity,
             price=args.price,
+            stop_price=args.stop_price,
         )
     except ValidationError as e:
         _print_failure("Validation failed", str(e))

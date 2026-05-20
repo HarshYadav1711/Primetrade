@@ -1,4 +1,4 @@
-"""Structured logging for market and limit orders."""
+"""Structured logging for market, limit, and stop-market orders."""
 
 import logging
 from pathlib import Path
@@ -6,6 +6,7 @@ from pathlib import Path
 LOG_DIR = Path(__file__).resolve().parent.parent / "logs"
 MARKET_LOG = LOG_DIR / "market_order.log"
 LIMIT_LOG = LOG_DIR / "limit_order.log"
+STOP_MARKET_LOG = LOG_DIR / "stop_market_order.log"
 
 LOG_FORMAT = "%(asctime)s | %(levelname)-8s | %(message)s"
 DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
@@ -24,7 +25,13 @@ def get_order_logger(order_type: str) -> logging.Logger:
         return logger
     logger.setLevel(logging.DEBUG)
     logger.propagate = False
-    path = LIMIT_LOG if order_type.upper() == "LIMIT" else MARKET_LOG
+    kind = order_type.upper()
+    if kind == "LIMIT":
+        path = LIMIT_LOG
+    elif kind == "STOP_MARKET":
+        path = STOP_MARKET_LOG
+    else:
+        path = MARKET_LOG
     handler = logging.FileHandler(path, encoding="utf-8")
     handler.setLevel(logging.DEBUG)
     handler.setFormatter(logging.Formatter(LOG_FORMAT, datefmt=DATE_FORMAT))

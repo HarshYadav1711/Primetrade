@@ -36,6 +36,7 @@ class TestPlaceFuturesOrderPayload(unittest.TestCase):
             },
         )
         self.assertNotIn("price", client.last_kwargs)
+        self.assertNotIn("stopPrice", client.last_kwargs)
         self.assertNotIn("timeInForce", client.last_kwargs)
 
     def test_limit_order_payload_includes_price_and_gtc(self):
@@ -59,6 +60,42 @@ class TestPlaceFuturesOrderPayload(unittest.TestCase):
                 "price": 2500.0,
             },
         )
+
+    def test_stop_market_payload_includes_stop_price(self):
+        client = _RecordingClient()
+        place_futures_order(
+            client,
+            symbol="BTCUSDT",
+            side="SELL",
+            order_type="STOP_MARKET",
+            quantity=0.002,
+            stop_price=90000.0,
+        )
+        self.assertEqual(
+            client.last_kwargs,
+            {
+                "symbol": "BTCUSDT",
+                "side": "SELL",
+                "type": "STOP_MARKET",
+                "quantity": 0.002,
+                "stopPrice": 90000.0,
+            },
+        )
+        self.assertNotIn("price", client.last_kwargs)
+        self.assertNotIn("timeInForce", client.last_kwargs)
+
+    def test_stop_market_without_stop_price_raises_before_api_call(self):
+        client = _RecordingClient()
+        with self.assertRaises(ValueError):
+            place_futures_order(
+                client,
+                symbol="BTCUSDT",
+                side="SELL",
+                order_type="STOP_MARKET",
+                quantity=0.002,
+                stop_price=None,
+            )
+        self.assertIsNone(client.last_kwargs)
 
     def test_limit_without_price_raises_before_api_call(self):
         client = _RecordingClient()
