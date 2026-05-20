@@ -101,20 +101,21 @@ With the virtual environment activated:
 pip install -r requirements.txt
 ```
 
-You should see `python-binance` and `python-dotenv` (and their dependencies) installed.
+You should see `python-binance` (imports as `binance`) and `python-dotenv` installed. The bot uses `Client(testnet=True)` from python-binance to reach Binance Futures Testnet only.
 
 ### Step 2.4: Put your API keys in `.env`
 
-1. Open the `.env` file in the project root (same folder as `run.py`).
-2. Replace the placeholders with your testnet keys:
+1. Copy `.env.example` to `.env` if you do not already have one.
+2. Open `.env` in the project root (same folder as `run.py`).
+3. Replace the placeholders with your **Futures Testnet** keys (not mainnet keys):
 
    ```env
    BINANCE_API_KEY=paste_your_api_key_here
    BINANCE_API_SECRET=paste_your_secret_key_here
    ```
 
-3. Save the file. Do not add quotes unless the key/secret itself contains spaces (usually they don’t).
-4. Ensure there are no extra spaces before or after the `=` sign.
+4. Save the file. Do not add quotes unless the key/secret itself contains spaces (usually they don’t).
+5. Ensure there are no extra spaces before or after the `=` sign.
 
 ---
 
@@ -200,7 +201,7 @@ Open these files to see request/response and error details (timestamps and log l
 
 | Issue | What to do |
 |-------|------------|
-| `ModuleNotFoundError: No module named 'binance'` | Activate the venv and run `pip install -r requirements.txt` again. |
+| `ModuleNotFoundError: No module named 'binance'` | Activate the venv and run `pip install -r requirements.txt` again. The PyPI package is `python-binance`; Python imports it as `binance`. |
 | `BINANCE_API_KEY and BINANCE_API_SECRET must be set` | Edit `.env` in the project root; ensure both variables are set and the file is saved. |
 | `Order failed: ...` (API error) | Check the message (e.g. insufficient balance, invalid symbol). On testnet, get free testnet USDT from the testnet site if needed. Check `logs/market_order.log` or `logs/limit_order.log` for full error. |
 | `Order's notional must be no smaller than 100` | Binance Futures requires notional (quantity × price) ≥ 100 USDT. Use a larger quantity, e.g. `0.002` for BTCUSDT or `0.03` for ETHUSDT. |

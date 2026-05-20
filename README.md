@@ -3,7 +3,7 @@
 
 ## Overview
 
-This project is a simplified command-line trading utility built using Python for the Binance Futures USDT-M Testnet.
+This project is a simplified command-line trading utility built using Python for **Binance Futures USDT-M Testnet only**. It does not connect to Binance mainnet or spot markets.
 
 The goal of the application is not to implement trading strategies or market analysis, but to demonstrate how a real trading system handles order execution, input validation, logging, and error handling in a clean and maintainable way.
 
@@ -26,8 +26,8 @@ The design closely follows how backend trading tools are structured in productio
 ## Technology Stack
 
 - Python 3.10+
-- Binance Futures USDT-M Testnet
-- python-binance (official, actively maintained SDK)
+- Binance Futures USDT-M Testnet (https://testnet.binancefuture.com)
+- [python-binance](https://github.com/sammchardy/python-binance) (community Python SDK; `Client(testnet=True)` for Futures testnet)
 - argparse for CLI handling
 - python-dotenv for environment variables
 - logging module from Python standard library
@@ -40,22 +40,19 @@ No paid services, cloud platforms, or billing-based tools are used.
 
 ```
 trading-bot/
-│
 ├── bot/
 │   ├── client.py
 │   ├── orders.py
 │   ├── validators.py
 │   ├── logging_config.py
 │   └── cli.py
-│
 ├── logs/
 │   ├── market_order.log
 │   └── limit_order.log
-│
 ├── .env.example
+├── SETUP.md
 ├── requirements.txt
-├── run.py
-└── README.md
+└── run.py
 ```
 
 ---
@@ -66,8 +63,12 @@ trading-bot/
 
 ```
 git clone <repository-url>
-cd trading-bot
+cd <repository-name>/trading-bot
 ```
+
+All commands below assume your working directory is `trading-bot/` (where `run.py` lives).
+
+For step-by-step API key creation on the Futures Testnet, see [trading-bot/SETUP.md](trading-bot/SETUP.md).
 
 ---
 
@@ -99,7 +100,14 @@ pip install -r requirements.txt
 
 ### 4. Configure environment variables
 
-Create a `.env` file in the project root:
+Create a `.env` file in `trading-bot/` (copy from `.env.example`). Keys must come from **Binance Futures Testnet** (https://testnet.binancefuture.com), not from mainnet Binance.
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `BINANCE_API_KEY` | Yes | Futures Testnet API key |
+| `BINANCE_API_SECRET` | Yes | Futures Testnet API secret |
+
+Example:
 
 ```
 BINANCE_API_KEY=your_testnet_api_key
@@ -110,17 +118,43 @@ BINANCE_API_SECRET=your_testnet_api_secret
 
 ## Running the Application
 
+Run from `trading-bot/` with the virtual environment activated. The CLI prints an order summary and prompts for confirmation unless you pass `--yes` (or `-y`).
+
+Binance Futures requires order notional (quantity × price) of at least **100 USDT**. The examples below use quantities that meet that minimum.
+
 ### Market Order
 
 ```
-python run.py --symbol BTCUSDT --side BUY --type MARKET --quantity 0.001
+python run.py --symbol BTCUSDT --side BUY --type MARKET --quantity 0.002
+```
+
+Skip the confirmation prompt:
+
+```
+python run.py --symbol BTCUSDT --side BUY --type MARKET --quantity 0.002 --yes
 ```
 
 ### Limit Order
 
+Limit orders require `--price`:
+
 ```
-python run.py --symbol BTCUSDT --side SELL --type LIMIT --quantity 0.001 --price 65000
+python run.py --symbol ETHUSDT --side SELL --type LIMIT --quantity 0.04 --price 2500
 ```
+
+### Expected output
+
+After you confirm with `y`, a successful order prints:
+
+```
+Order placed successfully:
+  orderId:    ...
+  status:     FILLED
+  executedQty: ...
+  avgPrice:   ...
+```
+
+Limit orders may show `status: NEW` until the price is reached. On failure, the CLI prints `Validation error: ...` or `Order failed: ...` to stderr. Request and response details are written to `logs/market_order.log` or `logs/limit_order.log`.
 
 ---
 
