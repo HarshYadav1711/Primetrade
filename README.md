@@ -41,7 +41,7 @@ Order placement goes only through `bot.client.create_futures_client`, which pass
 - **Base:** `https://testnet.binancefuture.com/fapi` (same as `Client.FUTURES_TESTNET_URL` in the SDK)
 - **Order path:** `POST …/v1/order` → full URL `https://testnet.binancefuture.com/fapi/v1/order`
 
-At startup, `create_futures_client` checks that the resolved order URL still uses that testnet base. Spot and mainnet futures APIs are not used by this bot.
+At startup, `create_futures_client` validates the testnet flag and order endpoint against public SDK constants. Spot and mainnet futures APIs are not used by this bot.
 
 ---
 
@@ -60,7 +60,8 @@ trading-bot/
 │   └── limit_order.log
 ├── tests/
 │   ├── test_validators.py
-│   └── test_client_order_payload.py
+│   ├── test_client_order_payload.py
+│   └── test_client_testnet_guard.py
 ├── .env.example
 ├── SETUP.md
 ├── requirements.txt
@@ -160,10 +161,10 @@ After you confirm with `y`, a successful order prints:
 
 ```
 Order placed successfully:
-  orderId:    ...
-  status:     FILLED
+  orderId:     ...
+  status:      FILLED
   executedQty: ...
-  avgPrice:   ...
+  avgPrice:    ...
 ```
 
 Limit orders may show `status: NEW` until the price is reached. On failure, the CLI prints `Validation error: ...` or `Order failed: ...` to stderr. Request and response details are written to `logs/market_order.log` or `logs/limit_order.log`.
