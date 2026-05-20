@@ -65,33 +65,29 @@ The bot only needs permission to place orders on Futures Testnet.
 2. Go to the project root (where `run.py` and the `bot` folder are):
 
    ```bash
-   cd d:\Fun\Primetrade\trading-bot
+   cd <repository-name>/trading-bot
    ```
 
-   Use the actual path where your `trading-bot` folder lives.
+   Use the path where your `trading-bot` folder lives (same directory as `run.py`).
 
 ### Step 2.2: Create a virtual environment (recommended)
 
 1. Create a venv:
 
    ```bash
-   python -m venv .venv
+   python -m venv venv
    ```
 
 2. Activate it:
-   - **Windows (PowerShell):**
+   - **Windows:**
      ```bash
-     .venv\Scripts\Activate.ps1
-     ```
-   - **Windows (Command Prompt):**
-     ```bash
-     .venv\Scripts\activate.bat
+     venv\Scripts\activate
      ```
    - **macOS/Linux:**
      ```bash
-     source .venv/bin/activate
+     source venv/bin/activate
      ```
-3. Your prompt should start with `(.venv)`.
+3. Your prompt should show `(venv)` when the environment is active.
 
 ### Step 2.3: Install dependencies
 
@@ -121,7 +117,7 @@ You should see `python-binance` (imports as `binance`) and `python-dotenv` insta
 
 ## Part 3: Run the Project
 
-All commands below are run from the project root: `d:\Fun\Primetrade\trading-bot` (or your path), with the virtual environment activated.
+All commands below are run from `trading-bot/` (where `run.py` lives), with the virtual environment activated.
 
 ### Step 3.1: Check that the CLI works
 
@@ -171,7 +167,7 @@ Or use the short form: `-y`.
 Limit orders require `--price`:
 
 ```bash
-python run.py --symbol ETHUSDT --side SELL --type LIMIT --quantity 0.01 --price 2500
+python run.py --symbol ETHUSDT --side SELL --type LIMIT --quantity 0.04 --price 2500
 ```
 
 Confirm when prompted (or add `--yes` to skip).
@@ -204,11 +200,11 @@ Open these files to see request/response and error details (timestamps and log l
 | `ModuleNotFoundError: No module named 'binance'` | Activate the venv and run `pip install -r requirements.txt` again. The PyPI package is `python-binance`; Python imports it as `binance`. |
 | `BINANCE_API_KEY and BINANCE_API_SECRET must be set` | Edit `.env` in the project root; ensure both variables are set and the file is saved. |
 | `Order failed: ...` (API error) | Check the message (e.g. insufficient balance, invalid symbol). On testnet, get free testnet USDT from the testnet site if needed. Check `logs/market_order.log` or `logs/limit_order.log` for full error. |
-| `Order's notional must be no smaller than 100` | Binance Futures requires notional (quantity × price) ≥ 100 USDT. Use a larger quantity, e.g. `0.002` for BTCUSDT or `0.03` for ETHUSDT. |
+| `Order's notional must be no smaller than 100` | Binance Futures requires notional (quantity × price) ≥ 100 USDT. Use a larger quantity, e.g. `0.002` for BTCUSDT or `0.04` for ETHUSDT at ~2500. |
 | `Validation error: Price is required for LIMIT orders` | For `--type LIMIT` you must pass `--price` (e.g. `--price 2500`). |
 | `Validation error: Quantity must be greater than zero` | Use a positive quantity (e.g. `0.001`). |
 | Nothing happens when I type at the prompt | Make sure you’re typing in the same terminal where the script is running; the prompt is “Place this order on Binance Futures Testnet? [y/N]”. |
-| `failed to locate pyvenv.cfg` when running `python -m venv venv` | Usually means an existing `venv` folder is broken or incomplete. Either: (1) Close any terminal/IDE using that venv, delete the `venv` folder, then run `python -m venv venv` again; or (2) Create the venv inside `trading-bot` with a different name: `cd trading-bot` then `python -m venv .venv`, and activate with `trading-bot\.venv\Scripts\Activate.ps1`. |
+| `failed to locate pyvenv.cfg` when running `python -m venv venv` | Usually means an existing `venv` folder is broken or incomplete. Close any terminal/IDE using that venv, delete the `venv` folder under `trading-bot/`, then run `python -m venv venv` again from `trading-bot/`. |
 
 ---
 
