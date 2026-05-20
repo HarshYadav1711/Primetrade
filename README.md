@@ -58,6 +58,9 @@ trading-bot/
 ├── logs/
 │   ├── market_order.log
 │   └── limit_order.log
+├── tests/
+│   ├── test_validators.py
+│   └── test_client_order_payload.py
 ├── .env.example
 ├── SETUP.md
 ├── requirements.txt
@@ -177,6 +180,18 @@ Logs include:
 - Exchange responses
 - Execution status
 - Error messages and API failures
+
+---
+
+## Verification
+
+From `trading-bot/`, run focused smoke tests (stdlib `unittest`, no API keys):
+
+```
+python -m unittest discover -s tests -v
+```
+
+CI runs the same checks on push and pull requests via `.github/workflows/smoke.yml`.
 
 ---
 
