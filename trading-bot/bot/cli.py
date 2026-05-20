@@ -116,7 +116,7 @@ def _parse_args() -> argparse.Namespace:
 Examples:
   python run.py --symbol BTCUSDT --side BUY --type MARKET --quantity 0.002
   python run.py --symbol ETHUSDT --side SELL --type LIMIT --quantity 0.04 --price 2500
-  python run.py --symbol BTCUSDT --side SELL --type STOP_MARKET --quantity 0.002 --stop-price 90000
+  python run.py --symbol BTCUSDT --side BUY --type STOP_MARKET --quantity 0.002 --stop-price 120000
         """,
     )
     parser.add_argument(

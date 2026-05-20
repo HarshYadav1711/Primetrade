@@ -123,6 +123,17 @@ class TestPlaceOrderExceptions(unittest.TestCase):
 
 
 class TestFormatOrderSummary(unittest.TestCase):
+    def test_formats_stop_market_algo_response(self):
+        summary = format_order_summary(
+            {
+                "algoId": 1000000080588159,
+                "algoStatus": "NEW",
+                "quantity": "0.0020",
+            }
+        )
+        self.assertIn("1000000080588159", summary)
+        self.assertIn("NEW", summary)
+
     def test_formats_filled_market_response(self):
         summary = format_order_summary(
             {

@@ -59,13 +59,24 @@ def _merge_order_context(response: dict, params: dict | None) -> dict:
     return merged
 
 
+def _response_order_id(response: dict) -> object:
+    """Standard orders use orderId; STOP_MARKET algo orders use algoId."""
+    if response.get("orderId") is not None:
+        return response.get("orderId")
+    return response.get("algoId")
+
+
+def _response_status(response: dict) -> object:
+    return response.get("status") or response.get("algoStatus")
+
+
 def _execution_tags(response: dict) -> str:
     """Execution identifiers when the exchange returns them."""
     parts: list[str] = []
-    order_id = response.get("orderId")
+    order_id = _response_order_id(response)
     if order_id is not None:
         parts.append(f"orderId={order_id}")
-    client_order_id = response.get("clientOrderId")
+    client_order_id = response.get("clientOrderId") or response.get("clientAlgoId")
     if client_order_id:
         parts.append(f"clientOrderId={client_order_id}")
     return " ".join(parts)
@@ -87,7 +98,7 @@ def log_response(
     """Log exchange response summary fields."""
     tags = _order_tags(_merge_order_context(response, params))
     execution = _execution_tags(response)
-    status = response.get("status")
+    status = _response_status(response)
     executed_qty = response.get("executedQty", response.get("origQty"))
     logger.info(
         "order | response | %s | %s | status=%s executedQty=%s",

@@ -61,6 +61,9 @@ trading-bot/
 │   └── stop_market_order.log
 ├── tests/
 │   ├── test_validators.py
+│   ├── test_orders.py
+│   ├── test_logging_config.py
+│   ├── test_client_network.py
 │   ├── test_client_order_payload.py
 │   └── test_client_testnet_guard.py
 ├── .env.example
@@ -219,10 +222,10 @@ python run.py --symbol ETHUSDT --side SELL --type LIMIT --quantity 0.04 --price 
 
 ### Stop-Market Order
 
-STOP_MARKET orders require `--stop-price` (trigger price). When the market reaches the stop price, Binance executes the order as a market order:
+STOP_MARKET orders require `--stop-price` (trigger price). When the market reaches the stop price, Binance executes the order as a market order. Set the stop on the correct side of the current price (e.g. BUY stop above market, SELL stop below); otherwise Binance may reject the order as immediately triggering.
 
 ```
-python run.py --symbol BTCUSDT --side SELL --type STOP_MARKET --quantity 0.002 --stop-price 90000
+python run.py --symbol BTCUSDT --side BUY --type STOP_MARKET --quantity 0.002 --stop-price 120000
 ```
 
 ### Expected output
@@ -281,8 +284,8 @@ CI runs the same checks on push and pull requests via `.github/workflows/smoke.y
 
 This bot is a small CLI for testnet order placement. It is **not** production-hardened as shipped. The following gaps matter if you extend it beyond manual, one-off commands:
 
-- **Retries** — Failed requests are surfaced once; there is no retry with backoff or distinction between transient network errors and permanent rejections.
-- **Timeouts** — HTTP timeouts follow the python-binance / `requests` defaults; slow or hung calls are not bounded explicitly in this codebase.
+- **Retries** — Transient connection/timeout errors are retried a few times in `client.py`; exchange rejections and other API errors are not retried.
+- **Timeouts** — A fixed HTTP timeout is set on the Binance client; it is not yet configurable from the CLI.
 - **Rate limits** — Binance enforces request weight and order-rate limits. This tool does not track usage, throttle, or handle `429` / `-1003` style responses beyond reporting the API error.
 - **Reconciliation** — After submit, the CLI trusts the immediate API response. There is no follow-up query (e.g. `GET /fapi/v1/order`) to confirm final status, fills, or partial execution.
 - **Idempotency** — Each run sends a new order. Retrying the same command after a timeout or crash can duplicate orders; there is no client order ID or deduplication layer.
@@ -294,7 +297,7 @@ This bot is a small CLI for testnet order placement. It is **not** production-ha
 
 Reasonable next steps if the scope grows, without changing the current design:
 
-- Add configurable timeouts and a small retry policy for idempotent-safe reads and clearly transient failures.
+- Make HTTP timeouts and retry limits configurable; add idempotent-safe reads where appropriate.
 - Map common Binance error codes to actionable CLI messages; optionally backoff when rate-limited.
 - Persist a client order ID (`newClientOrderId`) and expose a reconcile command that fetches order status by ID.
 - Extend `logging_config` with optional JSON formatting or a single structured handler while keeping per-order-type files.

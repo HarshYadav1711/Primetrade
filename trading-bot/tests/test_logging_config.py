@@ -42,6 +42,21 @@ class TestLogMessageFormat(unittest.TestCase):
         self.assertIn("status=submitting", msg)
         self.assertIn(str(params), msg)
 
+    def test_response_maps_algo_order_fields(self):
+        response = {
+            "symbol": "BTCUSDT",
+            "side": "BUY",
+            "type": "STOP_MARKET",
+            "algoId": 100,
+            "clientAlgoId": "algo-cid",
+            "algoStatus": "NEW",
+        }
+        log_response(self.logger, response)
+        msg = self.handler.messages[0]
+        self.assertIn("orderId=100", msg)
+        self.assertIn("clientOrderId=algo-cid", msg)
+        self.assertIn("status=NEW", msg)
+
     def test_response_includes_execution_ids_and_status(self):
         response = {
             "symbol": "BTCUSDT",

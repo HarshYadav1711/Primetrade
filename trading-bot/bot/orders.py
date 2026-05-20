@@ -64,9 +64,13 @@ def _display_value(value: object) -> str:
 
 def format_order_summary(response: dict) -> str:
     """Human-readable order result (orderId, status, executedQty, avgPrice)."""
+    order_id = response.get("orderId")
+    if order_id is None:
+        order_id = response.get("algoId")
+    status = response.get("status") or response.get("algoStatus")
     rows: list[tuple[str, object]] = [
-        ("Order ID", response.get("orderId")),
-        ("Status", response.get("status")),
+        ("Order ID", order_id),
+        ("Status", status),
         ("Executed Qty", response.get("executedQty", response.get("origQty"))),
     ]
     avg = response.get("avgPrice")
