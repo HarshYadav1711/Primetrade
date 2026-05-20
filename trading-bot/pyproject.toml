@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "primetrade-bot"
+version = "0.1.0"
+description = "Binance Futures USDT-M Testnet order CLI"
+requires-python = ">=3.10"
+dependencies = [
+    "python-binance>=1.0.19",
+    "python-dotenv>=1.0.0",
+]
+
+[project.scripts]
+primetrade = "bot.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["bot"]

@@ -64,6 +64,7 @@ trading-bot/
 │   ├── test_client_order_payload.py
 │   └── test_client_testnet_guard.py
 ├── .env.example
+├── pyproject.toml
 ├── SETUP.md
 ├── requirements.txt
 └── run.py
@@ -159,7 +160,10 @@ source venv/bin/activate
 
 ```
 pip install -r requirements.txt
+pip install -e .
 ```
+
+The editable install adds a `primetrade` console command (same behavior as `python run.py`). `run.py` remains supported unchanged.
 
 ---
 
@@ -184,6 +188,12 @@ BINANCE_API_SECRET=your_testnet_api_secret
 ## Running the Application
 
 Run from `trading-bot/` with the virtual environment activated. The CLI prints an order summary and prompts for confirmation unless you pass `--yes` (or `-y`).
+
+After `pip install -e .`, you can use the `primetrade` command instead of `python run.py`:
+
+```
+primetrade --symbol BTCUSDT --side BUY --type MARKET --quantity 0.002 --yes
+```
 
 Binance Futures requires order notional (quantity × price) of at least **100 USDT**. The examples below use quantities that meet that minimum.
 
