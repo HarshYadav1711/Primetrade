@@ -137,7 +137,7 @@ class TestFormatOrderSummary(unittest.TestCase):
         self.assertIn("FILLED", summary)
         self.assertIn("0.002", summary)
         self.assertIn("95000.50", summary)
-        self.assertIn("Avg price", summary)
+        self.assertIn("Avg Price", summary)
 
     def test_omits_avg_price_when_missing_or_blank(self):
         without_key = format_order_summary(
@@ -146,8 +146,8 @@ class TestFormatOrderSummary(unittest.TestCase):
         blank = format_order_summary(
             {"orderId": 1, "status": "NEW", "executedQty": "0", "avgPrice": ""}
         )
-        self.assertNotIn("Avg price", without_key)
-        self.assertNotIn("Avg price", blank)
+        self.assertNotIn("Avg Price", without_key)
+        self.assertNotIn("Avg Price", blank)
 
     def test_falls_back_to_orig_qty(self):
         summary = format_order_summary(

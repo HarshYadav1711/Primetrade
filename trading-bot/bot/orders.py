@@ -36,8 +36,9 @@ def place_order(client: Client, params: dict[str, str | float | None]) -> dict:
             stop_price=params.get("stop_price"),
         )
     except BinanceAPIException as e:
-        log_error(logger, "Binance API error", e)
+        log_error(logger, "binance api", e)
         msg = getattr(e, "message", None) or str(e)
+        # Append a clearer hint when the exchange rejects sub-minimum notional.
         if "notional" in msg.lower() and "100" in msg:
             msg = (
                 f"{msg} "
@@ -46,7 +47,7 @@ def place_order(client: Client, params: dict[str, str | float | None]) -> dict:
             )
         raise OrderError(msg) from e
     except BinanceRequestException as e:
-        log_error(logger, "Binance request error", e)
+        log_error(logger, "binance request", e)
         raise OrderError(str(e)) from e
 
     log_response(logger, response)
@@ -66,11 +67,11 @@ def format_order_summary(response: dict) -> str:
     rows: list[tuple[str, object]] = [
         ("Order ID", response.get("orderId")),
         ("Status", response.get("status")),
-        ("Executed qty", response.get("executedQty", response.get("origQty"))),
+        ("Executed Qty", response.get("executedQty", response.get("origQty"))),
     ]
     avg = response.get("avgPrice")
     if avg is not None and str(avg).strip():
-        rows.append(("Avg price", avg))
+        rows.append(("Avg Price", avg))
 
     width = max(len(label) for label, _ in rows)
     return "\n".join(

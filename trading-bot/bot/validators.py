@@ -110,6 +110,7 @@ def validate_order_params(
 ) -> dict[str, str | float | None]:
     """Validate all order parameters and return a normalized parameter dict."""
     order_type_n = validate_order_type(order_type)
+    # Keys match the internal order flow; price/stop_price are None when unused.
     return {
         "symbol": validate_symbol(symbol),
         "side": validate_side(side),

@@ -21,6 +21,7 @@ _CYAN = "\033[36m"
 
 _RULE = "─" * 44
 _LABEL_WIDTH = 12
+_TESTNET_LABEL = "Binance Futures Testnet"
 
 
 def _use_color(stream: object) -> bool:
@@ -51,8 +52,12 @@ def _order_field_rows(params: dict[str, str | float | None]) -> list[tuple[str, 
     if params.get("price") is not None:
         rows.append(("Price", params["price"]))
     if params.get("stop_price") is not None:
-        rows.append(("Stop price", params["stop_price"]))
+        rows.append(("Stop Price", params["stop_price"]))
     return rows
+
+
+def _print_rule(stream: object = sys.stdout) -> None:
+    print(_style(_RULE, _DIM, stream=stream), file=stream)
 
 
 def _print_order_block(
@@ -65,43 +70,47 @@ def _print_order_block(
     width = max(_LABEL_WIDTH, max(len(label) for label, _ in rows))
     header = _style(title, _BOLD, accent or _CYAN, stream=stream) if accent else title
     print(file=stream)
-    print(_style(_RULE, _DIM, stream=stream), file=stream)
+    _print_rule(stream)
     print(header, file=stream)
-    print(_style(_RULE, _DIM, stream=stream), file=stream)
+    _print_rule(stream)
     for label, value in rows:
         print(
             f"  {label:<{width}}  {_format_display_value(value)}",
             file=stream,
         )
-    print(_style(_RULE, _DIM, stream=stream), file=stream)
+    _print_rule(stream)
 
 
 def _print_failure(title: str, detail: str) -> None:
+    detail = detail.strip()
     print(file=sys.stderr)
     print(_style(f"✗ {title}", _BOLD, _RED, stream=sys.stderr), file=sys.stderr)
-    print(_style(_RULE, _DIM, stream=sys.stderr), file=sys.stderr)
-    for line in detail.splitlines():
-        print(f"  {line}", file=sys.stderr)
-    print(_style(_RULE, _DIM, stream=sys.stderr), file=sys.stderr)
-    print(file=sys.stderr)
+    _print_rule(sys.stderr)
+    if detail:
+        for line in detail.splitlines():
+            print(f"  {line}", file=sys.stderr)
+    _print_rule(sys.stderr)
 
 
 def _print_success(response: dict) -> None:
     print()
-    print(_style("✓ Order placed", _BOLD, _GREEN), "· Binance Futures Testnet")
-    print(_style(_RULE, _DIM), file=sys.stdout)
+    print(_style("✓ Order placed", _BOLD, _GREEN), f"({_TESTNET_LABEL})")
+    _print_rule()
     print(format_order_summary(response))
-    print(_style(_RULE, _DIM), file=sys.stdout)
+    _print_rule()
     print()
 
 
 def _print_cancelled() -> None:
-    print(_style("○ Order cancelled", _YELLOW), "— no request sent to the exchange.")
+    print(_style("○ Order cancelled", _YELLOW), "- no request sent to the exchange.")
 
 
 def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Place orders on Binance Futures Testnet (USDT-M): MARKET, LIMIT, STOP_MARKET.",
+        description=(
+            "Place orders on Binance Futures Testnet (USDT-M): "
+            "MARKET, LIMIT, STOP_MARKET."
+        ),
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
@@ -114,13 +123,13 @@ Examples:
         "--symbol",
         required=True,
         metavar="SYMBOL",
-        help="Trading pair (e.g. BTCUSDT)",
+        help="Trading pair (e.g. BTCUSDT).",
     )
     parser.add_argument(
         "--side",
         required=True,
         choices=["BUY", "SELL"],
-        help="Order side",
+        help="Order side: BUY or SELL.",
     )
     parser.add_argument(
         "--type",
@@ -128,31 +137,31 @@ Examples:
         required=True,
         choices=["MARKET", "LIMIT", "STOP_MARKET"],
         metavar="TYPE",
-        help="Order type (MARKET, LIMIT, or STOP_MARKET)",
+        help="Order type: MARKET, LIMIT, or STOP_MARKET.",
     )
     parser.add_argument(
         "--quantity",
         required=True,
         metavar="QTY",
-        help="Order quantity (positive number)",
+        help="Order quantity (positive number).",
     )
     parser.add_argument(
         "--price",
         default=None,
         metavar="PRICE",
-        help="Limit price (required for LIMIT orders)",
+        help="Limit price (required for LIMIT orders).",
     )
     parser.add_argument(
         "--stop-price",
         default=None,
         metavar="STOP",
-        help="Trigger price (required for STOP_MARKET orders)",
+        help="Trigger price (required for STOP_MARKET orders).",
     )
     parser.add_argument(
         "--yes",
         "-y",
         action="store_true",
-        help="Skip confirmation prompt",
+        help="Skip confirmation prompt.",
     )
     return parser.parse_args()
 
@@ -160,18 +169,13 @@ Examples:
 def _confirm(params: dict[str, str | float | None]) -> bool:
     """Return True if user confirms, False otherwise."""
     _print_order_block(
-        "Order preview · Binance Futures Testnet",
+        f"Order preview ({_TESTNET_LABEL})",
         _order_field_rows(params),
         accent=_CYAN,
     )
-    prompt = _style(
-        "Submit this order? [y/N] ",
-        _BOLD,
-        stream=sys.stdout,
-    )
-    hint = _style("  (y/yes to confirm · Enter or any other key to cancel)", _DIM)
-    print(hint)
-    print(prompt, end="", flush=True)
+    print()
+    print(_style("  y/yes to confirm, Enter or any other key to cancel", _DIM))
+    print(_style("Submit this order? [y/N] ", _BOLD), end="", flush=True)
     try:
         answer = input().strip().lower()
     except (EOFError, KeyboardInterrupt):
@@ -217,7 +221,7 @@ def main() -> int:
         _print_failure("Order failed", str(e))
         return 1
     except RuntimeError as e:
-        _print_failure("Error", str(e))
+        _print_failure("Client error", str(e))
         return 1
     except Exception as e:
         _print_failure("Unexpected error", str(e))

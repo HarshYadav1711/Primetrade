@@ -17,7 +17,7 @@ def _ensure_log_dir() -> None:
 
 
 def get_order_logger(order_type: str) -> logging.Logger:
-    """Return a logger that writes to the appropriate order log file."""
+    """Return a file logger for the given order type (one log file per type)."""
     _ensure_log_dir()
     name = f"bot.{order_type.lower()}_order"
     logger = logging.getLogger(name)
@@ -40,14 +40,14 @@ def get_order_logger(order_type: str) -> logging.Logger:
 
 
 def log_request(logger: logging.Logger, params: dict) -> None:
-    """Log outgoing order request (no secrets)."""
-    logger.info("Order request | %s", params)
+    """Log outgoing order parameters (no API keys or secrets)."""
+    logger.info("order | request | %s", params)
 
 
 def log_response(logger: logging.Logger, response: dict) -> None:
-    """Log API response summary."""
+    """Log exchange response summary fields."""
     logger.info(
-        "Order response | orderId=%s status=%s executedQty=%s",
+        "order | response | orderId=%s status=%s executedQty=%s",
         response.get("orderId"),
         response.get("status"),
         response.get("executedQty"),
@@ -55,8 +55,8 @@ def log_response(logger: logging.Logger, response: dict) -> None:
 
 
 def log_error(logger: logging.Logger, context: str, exc: Exception | None = None) -> None:
-    """Log an error; include stack trace when *exc* is provided."""
+    """Log a failure; include stack trace when *exc* is provided."""
     if exc is not None:
-        logger.exception("Order failed | %s", context)
+        logger.exception("order | failed | %s", context)
     else:
-        logger.error("Order failed | %s", context)
+        logger.error("order | failed | %s", context)

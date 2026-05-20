@@ -70,6 +70,7 @@ def place_futures_order(
         params["timeInForce"] = "GTC"
         params["price"] = price
     elif order_type == "STOP_MARKET":
+        # Binance Futures uses stopPrice as the trigger; execution is at market.
         if stop_price is None:
             raise ValueError("Stop price is required for STOP_MARKET orders.")
         params["stopPrice"] = stop_price
