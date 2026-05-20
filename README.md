@@ -267,6 +267,31 @@ CI runs the same checks on push and pull requests via `.github/workflows/smoke.y
 
 ---
 
+## Production Considerations
+
+This bot is a small CLI for testnet order placement. It is **not** production-hardened as shipped. The following gaps matter if you extend it beyond manual, one-off commands:
+
+- **Retries** — Failed requests are surfaced once; there is no retry with backoff or distinction between transient network errors and permanent rejections.
+- **Timeouts** — HTTP timeouts follow the python-binance / `requests` defaults; slow or hung calls are not bounded explicitly in this codebase.
+- **Rate limits** — Binance enforces request weight and order-rate limits. This tool does not track usage, throttle, or handle `429` / `-1003` style responses beyond reporting the API error.
+- **Reconciliation** — After submit, the CLI trusts the immediate API response. There is no follow-up query (e.g. `GET /fapi/v1/order`) to confirm final status, fills, or partial execution.
+- **Idempotency** — Each run sends a new order. Retrying the same command after a timeout or crash can duplicate orders; there is no client order ID or deduplication layer.
+- **Logging** — File logs under `logs/` are adequate for debugging a CLI. They are not structured for aggregation (JSON fields, correlation IDs, centralized shipping) without further work.
+
+---
+
+## Future Improvements
+
+Reasonable next steps if the scope grows, without changing the current design:
+
+- Add configurable timeouts and a small retry policy for idempotent-safe reads and clearly transient failures.
+- Map common Binance error codes to actionable CLI messages; optionally backoff when rate-limited.
+- Persist a client order ID (`newClientOrderId`) and expose a reconcile command that fetches order status by ID.
+- Extend `logging_config` with optional JSON formatting or a single structured handler while keeping per-order-type files.
+- Keep the execution layer thin; avoid adding strategy, portfolio, or multi-user features unless explicitly required.
+
+---
+
 ## Notes
 
 This project emphasizes clarity, correctness, and maintainability — key requirements when working with financial systems.
